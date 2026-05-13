@@ -8,7 +8,12 @@ def create_app() -> Flask:
     app.config.from_object(Config)
 
     db.init_app(app)
-
+    
+    
+    with app.app_context():
+        from app import models  
+        db.create_all()
+        
     celery.conf.update(
         broker_url=app.config["CELERY_BROKER_URL"],
         result_backend=app.config["CELERY_RESULT_BACKEND"]
