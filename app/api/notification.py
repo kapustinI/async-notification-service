@@ -55,7 +55,7 @@ def get_notification(notification_id: str):
         log_event("notification_get_invalid_id", notification_id=notification_id)
         return jsonify({"error": "invalid notification id"}), 400
     
-    notification = Notification.query.get(notification_uuid)
+    notification = db.session.get(Notification, notification_uuid)
     if notification is None:
         log_event("notification_get_invalid_id", notification_id=notification_id)
         return jsonify({"error": "notification not found"}), 404
