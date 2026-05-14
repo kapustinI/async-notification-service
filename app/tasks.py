@@ -25,7 +25,7 @@ def log_event(event: str, **details) -> None:
 def send_notification_task(notification_id: str) -> None:
     with flask_app.app_context():
         log_event("notification_processing_started", notification_id=notification_id)
-        notification = Notification.query.get(UUID(notification_id))
+        notification = db.session.get(Notification, UUID(notification_id))
         if  notification is None:
             log_event("notification_not_found", notification_id=notification_id)
             return

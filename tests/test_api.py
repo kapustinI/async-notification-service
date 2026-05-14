@@ -70,3 +70,18 @@ def test_list_notif_with_STATUS_filter(client, app):
     assert response.status_code == 200
     data = response.get_json()
     assert all(item["status"] == "failed" for item in data)
+
+def test_get_notif_invalid_uuid_400(client):
+    resp = client.get("/api/v1/notifications/NOTuuid")
+
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["error"] == "invalid notification id"
+
+
+def test_list_notif_invalid_status_400(client):
+    resp = client.get("/api/v1/notifications?status=missed&limit=10&offset=0")
+
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["error"] == "'status' must be one of: pending, sent, failed"
