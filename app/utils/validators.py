@@ -14,6 +14,7 @@ def validate_notification_payload(payload: dict[str, Any]) -> list[str]:
             errors.append(f"'{field}' is required")
     notif_type = payload.get("type")
     recipient = payload.get("recipient")
+    channel_data = payload.get("channel_data")
     if notif_type and notif_type not in ALLOWED_TYPES:
         errors.append("'type' must be one of: email, sms, telegram")
     if notif_type == "email" and recipient:
@@ -24,4 +25,6 @@ def validate_notification_payload(payload: dict[str, Any]) -> list[str]:
     if notif_type in {"sms", "telegram"} and recipient:
         if not PHONE_PATTERN.match(recipient):
             errors.append("'recipient' must be a valid phone (e.g. +79524445566)")
+    if channel_data is not None and not isinstance(channel_data, dict):
+         errors.append("'channel_data' must be an object")
     return errors

@@ -17,6 +17,7 @@ def create_notification():
         type = payload["type"],
         recipient=payload["recipient"],
         subject=payload.get("subject"),
+        channel_data=payload.get("channel_data"),
         message=payload["message"],
         status="pending",
     )
