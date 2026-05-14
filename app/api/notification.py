@@ -1,17 +1,29 @@
 from flask import Blueprint, jsonify, request
-
+import json
 from uuid import UUID
 from app.extensions import db
 from app.models import Notification
 from app.utils.validators import validate_notification_payload
+from datetime import datetime, timezone
 
 notifications_bp = Blueprint("notifications", __name__, url_prefix="/notifications")
+
+def log_event(event: str, **details) -> None:
+    record = {
+        "time": datetime.now(timezone.utc).isoformat(),
+        "service": "api",
+        "event": event,
+        "details": details,
+    }
+    print(json.dumps(record, ensure_ascii=False), flush=True)
 
 @notifications_bp.post("")
 def create_notification():
     payload = request.get_json(silent=True) or {}
+    log_event("notification_request_received", payload=payload)
     errors = validate_notification_payload(payload)
     if errors:
+        log_event("notification_validation_failed", errors=errors)
         return jsonify({"errors": errors}), 400
     
     notification = Notification(
@@ -25,10 +37,12 @@ def create_notification():
 
     db.session.add(notification)
     db.session.commit()
+    log_event("notification_saved", notification_id=str(notification.id), status=notification.status)
 
     from app.tasks import send_notification_task
 
     send_notification_task.delay(str(notification.id))
+    log_event("notification_queued", notification_id=str(notification.id))
 
     return jsonify({"id": str(notification.id), "status": "queued"}), 201
 
@@ -38,11 +52,15 @@ def get_notification(notification_id: str):
     try:
         notification_uuid = UUID(notification_id)
     except ValueError:
+        log_event("notification_get_invalid_id", notification_id=notification_id)
         return jsonify({"error": "invalid notification id"}), 400
     
     notification = Notification.query.get(notification_uuid)
     if notification is None:
+        log_event("notification_get_invalid_id", notification_id=notification_id)
         return jsonify({"error": "notification not found"}), 404
+    
+    log_event("notification_get_success", notification_id=str(notification.id), status=notification.status)
     
     return (
         jsonify(
@@ -61,8 +79,7 @@ def list_notifications():
     limit = request.args.get("limit", default=20, type=int)
     offset = request.args.get("offset", default=0, type=int)
 
-    print("raw args:", request.args)
-    print("parsed:", status, limit, offset)
+    log_event("notification_list_requested", status=status, limit=limit, offset=offset)
 
     if limit is None or limit <= 0:
         return jsonify({"error": "'limit' must be positive integer"}), 400
@@ -83,6 +100,8 @@ def list_notifications():
         .limit(limit)
         .all()
     )
+
+    log_event("notification_list_success", count=len(items))
 
     return (
         jsonify(

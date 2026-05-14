@@ -8,7 +8,7 @@ Content-Type: application/json
 {
   "type": "email",
   "recipient": "user@example.com",
-  "message": "hello from http file"
+  "message": "test"
 }
 
 ###
@@ -18,7 +18,7 @@ Content-Type: application/json
 {
   "type": "email",
   "recipient": "bad-email",
-  "message": "hello"
+  "message": "test"
 }
 
 ###
@@ -28,8 +28,8 @@ Content-Type: application/json
 {
   "type": "email",
   "recipient": "user@example.com",
-  "subject": "Подтвердите регистрацию",
-  "message": "Перейдите по ссылке для подтверждения."
+  "subject": "TEST",
+  "message": "test"
 }
 
 ###
@@ -40,10 +40,10 @@ Content-Type: application/json
   "type": "email",
   "recipient": "user@example.com",
   "subject": "Welcome",
-  "message": "Hello!",
+  "message": "test",
   "channel_data": {
     "template_id": "welcome_v1",
-    "from_name": "Test"
+    "from_name": "TEST FROM NAME"
   }
 }
 
