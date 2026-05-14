@@ -12,7 +12,7 @@ def create_notification():
     payload = request.get_json(silent=True) or {}
     errors = validate_notification_payload(payload)
     if errors:
-        return jsonify({"errors": errors})
+        return jsonify({"errors": errors}), 400
     
     notification = Notification(
         type = payload["type"],
@@ -53,4 +53,48 @@ def get_notification(notification_id: str):
             }
         ),
         200
+    )
+
+@notifications_bp.get("")
+def list_notifications():
+    status = request.args.get("status")
+    limit = request.args.get("limit", default=20, type=int)
+    offset = request.args.get("offset", default=0, type=int)
+
+    print("raw args:", request.args)
+    print("parsed:", status, limit, offset)
+
+    if limit is None or limit <= 0:
+        return jsonify({"error": "'limit' must be positive integer"}), 400
+    if offset is None or offset < 0:
+        return jsonify({"error": "'offset' must be a non-negative integer"}), 400
+    
+    query = Notification.query
+
+    if status:
+        allowed_status = {"pending", "sent", "failed"}
+        if status not in allowed_status:
+            return jsonify({"error": "'status' must be one of: pending, sent, failed"}), 400
+        query = query.filter_by(status=status)
+    
+    items = (
+        query.order_by(Notification.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+    return (
+        jsonify(
+            [
+                {
+                    "id": str(item.id),
+                    "status": item.status,
+                    "error": item.error_text,
+
+                }
+                 for item in items
+            ]
+        ),
+        200,
     )

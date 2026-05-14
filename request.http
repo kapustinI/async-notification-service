@@ -49,3 +49,15 @@ Content-Type: application/json
 
 ### 
 GET http://localhost:8000/api/v1/notifications/<id>
+
+###
+GET http://localhost:8000/api/v1/notifications
+
+###
+GET http://localhost:8000/api/v1/notifications?status=failed&limit=10&offset=0
+
+###
+GET http://localhost:8000/api/v1/notifications?status=sent&limit=5&offset=0
+
+###
+GET http://localhost:8000/api/v1/notifications?status=done
